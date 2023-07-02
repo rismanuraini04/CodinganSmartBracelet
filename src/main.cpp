@@ -16,9 +16,9 @@
 String dataPreferences = "";
 String deviceId = "";
 
-const char *MQTT_SERVER = "192.168.220.149";
-const char *MQTT_USERNAME = "risma";
-const char *MQTT_PASSWORD = "1234";
+const char *MQTT_SERVER = "103.139.192.253";
+const char *MQTT_USERNAME = "skripsimqtt";
+const char *MQTT_PASSWORD = "@YZ7rqrLIDJ^!Qrz";
 
 const char *ssid = "vivo V25e";
 const char *password = "hotspotpassword";
@@ -87,6 +87,8 @@ void setup()
 {
   Serial.begin(9600);
   delay(10);
+  pinMode(10, OUTPUT);
+  digitalWrite(10, HIGH);
   Wire.begin();
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   mlx.begin();
@@ -137,7 +139,7 @@ void setup()
   {
     Serial.println("Data Kosong");
     HTTPClient http;
-    http.begin("http://192.168.220.149:8000/api/v1/smartbracelet/generateid");
+    http.begin("http://103.139.192.253:8400/api/v1/smartbracelet/generateid");
     http.addHeader("Content-Type", "application/json");
     int httpResponseCode = http.POST("");
 
@@ -180,6 +182,8 @@ void setup()
 void loop()
 {
   int objectTempC = round(mlx.readObjectTempC());
+  int calibrationOffset = 2.0;
+  int objectTemp = objectTempC + calibrationOffset;
 
   if (!client.connected())
   {
@@ -193,7 +197,7 @@ void loop()
     Serial.print("Mengirim pesan");
     String topic = "/bracelet/update/temp/" + deviceId;
     const char *topicChar = topic.c_str();
-    int suhu = (objectTempC);
+    int suhu = (objectTemp);
     String suhuStr = String(suhu);
     String payload = "{\"temp\":\"" + suhuStr + "\",\"id\":\"" + deviceId + "\"}";
     const char *payloadChar = payload.c_str();
@@ -208,13 +212,9 @@ void loop()
   display.print(deviceId);
   display.setCursor(0, 30);
   display.print("Suhu: ");
-  display.print(objectTempC);
+  display.print(objectTemp);
   display.println(" C");
   display.display();
-
-  // Serial.print("Suhu: ");
-  // Serial.print(objectTempC);
-  // Serial.println(" C");
 
   // delay(1000);
   // delay(500);
